@@ -1,3 +1,23 @@
+# 🦩 OpenFlamin-ko
+Thank you for Open Flamingo, I studied how to training vision language model with korean dataset
+
+We use korean LAION-2B [Hugging Face](https://huggingface.co/datasets/Bingsu/laion2B-multi-korean-subset) for training.
+
+## Training
+1. Download korean LAION-2B dataset with `img2dataset` library.
+```
+python korean_dataset/korean_LAION-2B.py
+```
+
+2. Train with korean LAION-2B dataset & korean llm [Hugginface](https://huggingface.co/Bllossom/llama-3.2-Korean-Bllossom-3B)
+```
+python open_flamingo/train/train.py --lm_path Bllossom/llama-3.2-Korean-Bllossom-3B --tokenizer_path Bllossom/llama-3.2-Korean-Bllossom-3B --cross_attn_every_n_layers 10 --dataset_resampled  --batch_size_mmc4 1 --batch_size_laion 1 --train_num_samples_mmc4 25000 --train_num_samples_laion 25000 --loss_multiplier_laion 0.2 --workers 4 --run_name OpenFlamingo-3B-vit1-bllossom --num_epoch 1 --warmup_steps 100 --precision amp_bf16 --mmc4_textsim_threshold 0.24 --laion_shards "korean-laion2B/{00000..00499}.tar" --mmc4_shards "korean-laion2B/{00500..00999}.tar"
+```
+## Changes
+- I train only with single GPU, So I changed DDP model to normal model.
+- I train with only LAION-2B dataset, So I distributed LAION-2B dataset.
+
+---
 # 🦩 OpenFlamingo
 
 [![PyPI version](https://badge.fury.io/py/open_flamingo.svg)](https://badge.fury.io/py/open_flamingo)
