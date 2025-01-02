@@ -119,14 +119,9 @@ def train_one_epoch(
 
         #### MMC4 FORWARD PASS ####
         images = batch_mmc4[0].to(device_id, dtype=cast_dtype, non_blocking=True)
-        images = rearrange(images, "(b t f) c h w -> b t f c h w", t=1, f=1)
-        input_ids = batch_mmc4[1][0].to(device_id, dtype=cast_dtype, non_blocking=True)
-        attention_mask = batch_mmc4[1][1].to(
-            device_id, dtype=cast_dtype, non_blocking=True
-        )
-        #images = rearrange(images, "b (t f) c h w -> b t f c h w", f=1) #LAION 형태로 학습
-        #input_ids = torch.stack([x[0] for x in batch_mmc4[1]]).squeeze(1)
-        #attention_mask = torch.stack([x[1] for x in batch_mmc4[1]]).squeeze(1)
+        images = rearrange(images, "b (t f) c h w -> b t f c h w", f=1)
+        input_ids = torch.stack([x[0] for x in batch_mmc4[1]]).squeeze(1)
+        attention_mask = torch.stack([x[1] for x in batch_mmc4[1]]).squeeze(1)
 
         # set up labels; language model is expected to handle shifting
         labels = input_ids.clone()
@@ -184,7 +179,7 @@ def train_one_epoch(
                 embed_grad = model.lang_encoder.get_input_embeddings().weight.grad
             else:
                 embed_grad = (
-                    model.lang_encoder.get_input_embeddings().weight.grad
+                    model.module.lang_encoder.get_input_embeddings().weight.grad
                 )
             zero_mask = torch.zeros_like(embed_grad)
             zero_mask[media_token_id] = torch.ones_like(zero_mask[media_token_id])
@@ -196,7 +191,7 @@ def train_one_epoch(
                     embed_grad * zero_mask
                 )
             else:
-                model.lang_encoder.get_input_embeddings().weight.grad = (
+                model.module.lang_encoder.get_input_embeddings().weight.grad = (
                     embed_grad * zero_mask
                 )
 

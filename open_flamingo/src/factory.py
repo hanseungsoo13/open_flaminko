@@ -1,6 +1,5 @@
 from typing import Optional
 
-import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import open_clip
 
@@ -44,7 +43,6 @@ def create_model_and_transforms(
         clip_vision_encoder_path,
         pretrained=clip_vision_encoder_pretrained,
         cache_dir=cache_dir,
-        precision = 'bf16',
     )
     # set the vision encoder to output the visual features
     vision_encoder.visual.output_tokens = True
@@ -89,10 +87,7 @@ def create_model_and_transforms(
     if decoder_layers_attr_name is None:
         decoder_layers_attr_name = _infer_decoder_layers_attr_name(lang_encoder)
     lang_encoder.set_decoder_layers_attr_name(decoder_layers_attr_name)
-    if "Korean" in lang_encoder_path:
-        lang_encoder.resize_token_embeddings(len(text_tokenizer),mean_resizing=False)
-    else:
-        lang_encoder.resize_token_embeddings(len(text_tokenizer))
+    lang_encoder.resize_token_embeddings(len(text_tokenizer))
 
     model = Flamingo(
         vision_encoder,

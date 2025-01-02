@@ -8,11 +8,11 @@ import random
 import numpy as np
 import torch
 import wandb
-from open_flamingo.train.data import get_data
-from open_flamingo.train.distributed import init_distributed_device, world_info_from_env
+from data import get_data
+from distributed import init_distributed_device, world_info_from_env
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
-from open_flamingo.train.train_utils import (
+from train_utils import (
     train_one_epoch,
     get_mp_policy_dtype,
     save_checkpoint,
@@ -51,7 +51,7 @@ def random_seed(seed=42, rank=0):
 def main():
     parser = argparse.ArgumentParser()
     # model configuration args
-    parser.add_argument("--vision_encoder_path", default="ViT-B-16", type=str)
+    parser.add_argument("--vision_encoder_path", default="ViT-L-14", type=str)
     parser.add_argument("--vision_encoder_pretrained", default="openai", type=str)
     parser.add_argument("--lm_path", default="facebook/opt-1.3b", type=str)
     parser.add_argument(
@@ -253,14 +253,7 @@ def main():
         os.environ["WANDB_MODE"] = "offline"
         os.environ["TRANSFORMERS_OFFLINE"] = "1"
     args.local_rank, args.rank, args.world_size = world_info_from_env()
-
-    if torch.cuda.is_available():
-        device = "cuda:0"
-        torch.cuda.set_device(device)
-    else:
-        device = "cpu"
-    args.device = device
-    device_id = torch.device(device)
+    device_id = init_distributed_device(args)
     random_seed(args.seed)
 
     # Initialize model
@@ -369,9 +362,8 @@ def main():
         )
 
     else:
-        ddp_model = model.to(device_id)
-        #ddp 모델은 DistributedDataParallel 을 활용한 모델 -> 우린 단일 GPU
-        #ddp_model = DDP(model, device_ids=[device_id]) 
+        model = model.to(device_id)
+        ddp_model = DDP(model, device_ids=[device_id])
 
     # Initialize gradient checkpointing
     if args.gradient_checkpointing:

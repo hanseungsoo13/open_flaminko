@@ -111,10 +111,7 @@ def group_by_keys_nothrow(
     current_sample = None
     for filesample in data:
         assert isinstance(filesample, dict)
-        if len(filesample.keys()) == 0:
-            continue
-        else:
-            fname, value = filesample["fname"], filesample["data"]
+        fname, value = filesample["fname"], filesample["data"]
         prefix, suffix = keys(fname)
         if prefix is None:
             continue
