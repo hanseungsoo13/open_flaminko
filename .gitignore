@@ -144,3 +144,7 @@ wandb
 cache/
 
 __*.sh
+
+korean-laion2B/
+korean-laion2B.csv
+PATH/
